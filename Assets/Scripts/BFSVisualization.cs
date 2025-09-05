@@ -40,6 +40,7 @@ public class BFSVisualization : MonoBehaviour
 
     public void Initialized()
     {
+        foundTarget = false;
         visitedNodes.Clear();
         foreach (var node in nodeLookup.Values)
         {
@@ -81,13 +82,13 @@ public class BFSVisualization : MonoBehaviour
     public void StartVisualization()
     {
         Initialized();
-        if (!nodeLookup.ContainsKey(searchbValue.text))
+        if (!nodeLookup.ContainsKey("A"))
         {
-            Debug.LogError($"시작 노드 '{searchbValue.text}'가 존재하지 않습니다.");
+            Debug.LogError($"시작 노드 'A'가 존재하지 않습니다.");
             return;
         }
 
-        StartCoroutine(BFS(searchbValue.text));
+        StartCoroutine(BFS("A"));
     }
 
     void LoadNodes()
@@ -100,6 +101,8 @@ public class BFSVisualization : MonoBehaviour
             nodeLookup[node.nodeName] = node;
         }
     }
+
+    private bool foundTarget = false;
 
     IEnumerator BFS(string startName)
     {
@@ -114,6 +117,11 @@ public class BFSVisualization : MonoBehaviour
         {
             string currentName = queue.Dequeue();
 
+            if(foundTarget)
+            {
+                yield break;
+            }
+
             Node currentNode = nodeLookup[currentName];
             currentNode.Visit();
 
@@ -121,6 +129,13 @@ public class BFSVisualization : MonoBehaviour
             {
                 string parentName = parent[currentName];
                 yield return StartCoroutine(CreateAnimateEdge(nodeLookup[parentName], currentNode, Color.green, 0.2f));
+            }
+
+            if (currentName == searchbValue.text)
+            {
+                foundTarget = true;
+                Debug.Log($"목표 노드 {currentName}를 찾았습니다!");
+                yield break;
             }
 
             foreach (string neighborName in graphData[currentName])

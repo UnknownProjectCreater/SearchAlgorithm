@@ -40,6 +40,7 @@ public class DFSVisualization : MonoBehaviour
 
     public void Initialized()
     {
+        foundTarget = false;
         visitedNodes.Clear();
         foreach (var node in nodeLookup.Values)
         {
@@ -81,13 +82,13 @@ public class DFSVisualization : MonoBehaviour
     public void StartVisualization()
     {
         Initialized();
-        if (!nodeLookup.ContainsKey(searchbValue.text))
+        if (!nodeLookup.ContainsKey("A"))
         {
-            Debug.LogError($"시작 노드 '{searchbValue.text}'가 존재하지 않습니다.");
+            Debug.LogError($"탐색 노드 '{searchbValue.text}'가 존재하지 않습니다.");
             return;
         }
 
-        StartCoroutine(DFS(searchbValue.text, searchbValue.text));
+        StartCoroutine(DFS("A", "A"));
     }
 
     void LoadNodes()
@@ -101,21 +102,34 @@ public class DFSVisualization : MonoBehaviour
         }
     }
 
+    private bool foundTarget = false;
+
     IEnumerator DFS(string currentName, string startName)
     {
         Node pastNode = nodeLookup[startName];
-        if (visitedNodes.Contains(currentName))
+
+        if (foundTarget || visitedNodes.Contains(currentName))
         {
             yield break;
         }
 
         visitedNodes.Add(currentName);
-
         Node currentNode = nodeLookup[currentName];
         currentNode.Visit();
-        yield return StartCoroutine(CreateAnimateEdge(pastNode, currentNode, Color.green, 0.2f));
+
+        if(startName != null)
+        {
+            yield return StartCoroutine(CreateAnimateEdge(pastNode, currentNode, Color.green, 0.2f));
+        }
 
         yield return new WaitForSeconds(delay); // 방문 상태를 보여줄 시간
+
+        if (currentName == searchbValue.text)
+        {
+            foundTarget = true;
+            Debug.Log($"목표 노드 {currentName}를 찾았습니다!");
+            yield break;
+        }
 
         foreach (string neighborName in graphData[currentName])
         {
